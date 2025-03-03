@@ -1,0 +1,139 @@
+<!-- 
+AUTHOR: Teddy Danielson
+EMAIL: tddaniel@ucsc.edu
+
+Notes to Grader:
+  - Collaboration: I worked with Sam Morrow. We discussed assignment requirements and brainstormed implementation strategies together.
+  - AI Assistance: I used ChatGPT to help understand and implement the spotlight addition to our lighting model, adjust shader code for Phong shading, and reformat the HTML/CSS so that all controls and text appear to the right of the canvas.
+  - GitHub Copilot provided occasional code suggestions, which I reviewed and integrated only after thorough testing.
+  - Expanded Features: Building on our previous work, I added a buffer for normals, implemented a spotlight that adds its contribution to the global light (using Phong shading), and ensured the UI is organized with the canvas on the left and all text/controls on the right.
+  - Debugging & Documentation: I used Cody AI tools to help document the code and produce detailed comments.
+  - Overall, the assignment successfully integrates advanced lighting, UI improvements, and shader enhancements to create a more dynamic virtual environment.
+-->
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <title>Change a Point Color</title>
+  <style>
+    /* Outer container: row layout so canvas and controls are side-by-side */
+    #outerContainer {
+      display: flex;
+      flex-direction: row;
+      align-items: flex-start;
+      /* Align items at the top */
+      justify-content: flex-start;
+      height: 100vh;
+      margin: 0;
+      /* Remove default body margins if desired */
+      padding: 0;
+    }
+
+    div {
+      margin-top: 25px;
+      font-size: 20px;
+    }
+
+    /* Canvas on the left, with some spacing on the right */
+    #webgl {
+      margin-right: 20px;
+      margin-top: 20px;
+    }
+
+    /* Controls on the right */
+    #controls {
+      display: flex;
+      flex-direction: column;
+      /* Stack your buttons/sliders vertically */
+    }
+
+    /* Optional: style for your text/paragraphs/buttons, etc. */
+    p,
+    pre {
+      margin: 5px 0;
+    }
+
+    button {
+      margin: 5px 0;
+      font-size: 18px;
+    }
+  </style>
+</head>
+
+<body onload="main()">
+  <div id="outerContainer">
+    <!-- Left side: Canvas element for WebGL rendering -->
+    <canvas id="webgl" width="1000" height="750">
+      Please use a browser that supports "canvas"
+    </canvas>
+
+    <!-- Right side: Controls / text / info -->
+    <p> </p>
+
+    <div id="controls">
+      <p><b>Dev Info:</b></p>
+      <p id="numdot">XXX </p>
+      <p><b>Environment Controls:</b></p>
+      <p>
+        Normals:
+        <button id="normalOn">On</button>
+        <button id="normalOff">Off</button>
+      </p>
+      <p>
+        Regular Light:
+        <button id="lightOn">On</button>
+        <button id="lightOff">Off</button>
+      </p>
+      <p>
+        Spot Light:
+        <button id="spotLightOn">On</button>
+        <button id="spotLightOff">Off</button>
+      </p>
+      <p>
+        Light (+cockroach) Animation:
+        <button type="button" id="animationLegOnButton">On</button>
+        <button type="button" id="animationLegOffButton">Off</button>
+      </p>
+      <p><b>Light Placement:</b></p>
+      <p>Regular X
+        <input type="range" id="lightSlideX" min="-100" max="100" step="0.1" value="0">
+      </p>
+      <p>Regular Light Y
+        <input type="range" id="lightSlideY" min="-100" max="100" step="0.1" value="0">
+      </p>
+      <p>Regular Light Z
+        <input type="range" id="lightSlideZ" min="-100" max="100" step="0.1" value="0">
+      </p>
+
+      <p>Spot Light X
+        <input type="range" id="spotSlideX" min="-400" max="400" step="0.1" value="0">
+      </p>
+      <p>Spot Light Y
+        <input type="range" id="spotSlideY" min="0" max="700" step="0.1" value="600">
+      </p>
+      <p>Spot Light Z
+        <input type="range" id="spotSlideZ" min="-400" max="400" step="0.1" value="0">
+      </p>
+
+      <pre id="mapOtput"></pre>
+    </div>
+  </div>
+
+  <!-- Script references -->
+  <script src="../lib/cuon-matrix-cse160.js"></script>
+  <script src="../lib/webgl-debug.js"></script>
+  <script src="../lib/cuon-utils.js"></script>
+  <script src="Cube.js"></script>
+  <script src="Sphere.js"></script>
+  <script src="StaticVariables.js"></script>
+  <script src="Render.js"></script>
+  <script src="Triangle.js"></script>
+  <script src="Camera.js"></script>
+  <script src="World.js"></script>
+</body>
+
+</html>
