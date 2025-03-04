@@ -90,6 +90,10 @@ function renderAllShapes() {
   // upload global rotation matrix to shader
   gl.uniformMatrix4fv(u_GlobalRotateMatrix, false, globalRotMat.elements);
 
+  // Assuming u_lightColor is a uniform for light color in your shader
+  gl.uniform3f(u_lightColor, g_lightColor[0], g_lightColor[1], g_lightColor[2]);
+
+
   // create projection matrix
   var projMat = new Matrix4();
   projMat.setPerspective(60, canvas.width / canvas.height, 0.1, 100);

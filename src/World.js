@@ -36,6 +36,7 @@ var FSHADER_SOURCE =
   'uniform bool u_spotLightOn;\n' +
   'uniform vec3 u_cameraPos;\n' +
   'varying vec4 v_VertPos;\n' +
+  'uniform vec3 u_lightColor;\n' +
   'uniform vec3 u_spotLightPos;\n' +
   'uniform vec3 u_spotLightDir;\n' +
   'uniform float u_spotLightCutoff;\n' +
@@ -73,8 +74,8 @@ var FSHADER_SOURCE =
   '  float nDotL = max(dot(N, L), 0.0);\n' +
   '  vec3 R = reflect(-L, N);\n' +
   '  vec3 E = normalize(u_cameraPos-vec3(v_VertPos));\n' +
-  '  vec3 specular = vec3(pow(max(dot(E,R), 0.0), 10.0));\n' +
-  '  vec3 diffuse = vec3(gl_FragColor) * nDotL;\n' +
+  '  vec3 specular = vec3(pow(max(dot(E,R), 0.0), 10.0)) * u_lightColor;\n' +
+  '  vec3 diffuse = vec3(gl_FragColor) * nDotL * u_lightColor;\n' +
   '  vec3 ambient = vec3(gl_FragColor) * 0.3;\n' +
 
   // Spot Light
@@ -90,8 +91,8 @@ var FSHADER_SOURCE =
   '     spotIntensity = pow(spotFactor, u_spotLightExp);\n' +
   '  }\n' +
 
-  '  vec3 diffuse_spot = vec3(gl_FragColor) * nDotL_spot * spotIntensity;\n' +
-  '  specular_spot = specular_spot * spotIntensity;\n' +
+  '  vec3 diffuse_spot = vec3(gl_FragColor) * nDotL_spot * spotIntensity* u_lightColor;\n' +
+  '  specular_spot = specular_spot * spotIntensity* u_lightColor;\n' +
 
   // I don't want the floor to shine
   '  if (u_whichTexture == -4) {\n' +
@@ -130,6 +131,7 @@ let u_ProjectionMatrix; // uniform location for projection matrix
 let u_NormalMatrix; // uniform location for normal matrix
 let u_lightOn; // uniform location for light on/off
 let u_spotLightOn;
+let u_lightColor; // uniform location for light color
 let a_UV; // attribute location for UV coordinates
 let v_UV; // varying UV coordinates
 let a_Normal; // attribute location for normal
@@ -296,6 +298,12 @@ function connectVariablesToGLSL() {
     return;
   }
 
+  u_lightColor = gl.getUniformLocation(gl.program, 'u_lightColor'); // get uniform location for light color
+  if (!u_lightColor) {
+    console.log('failed to get the storage location of u_lightColor'); // log error
+    return;
+  }
+
   u_ViewMatrix = gl.getUniformLocation(gl.program, 'u_ViewMatrix'); // get uniform location for view matrix
   if (!u_ViewMatrix) {
     console.log('failed to get the storage location of u_ViewMatrix'); // log error
@@ -383,6 +391,7 @@ let g_magAnimation = false; // magnitude animation flag
 let g_yellowAnimation = false; // yellow animation flag
 let g_normalOn = false; // normal on flag
 let g_lightPos = [0, 1, -1]; // light position
+let g_lightColor = [1, 1, 1]; // light color
 
 // Spotlight parameters
 let g_spotlightPos = [0, 6, 0];
@@ -454,6 +463,27 @@ function initTextures() {
 
 function isPowerOf2(value) {
   return (value & (value - 1)) === 0; // check if value is power of 2
+}
+
+function hsvToRgb(h, s, v) {
+  let c = v * s;
+  let x = c * (1 - Math.abs((h / 60) % 2 - 1));
+  let m = v - c;
+  let r, g, b;
+  if (h >= 0 && h < 60) {
+    r = c; g = x; b = 0;
+  } else if (h >= 60 && h < 120) {
+    r = x; g = c; b = 0;
+  } else if (h >= 120 && h < 180) {
+    r = 0; g = c; b = x;
+  } else if (h >= 180 && h < 240) {
+    r = 0; g = x; b = c;
+  } else if (h >= 240 && h < 300) {
+    r = x; g = 0; b = c;
+  } else {
+    r = c; g = 0; b = x;
+  }
+  return [r + m, g + m, b + m];
 }
 
 function sendTextureToTEXTURE(image, index) {
@@ -623,6 +653,26 @@ function addActionsForHtmlUI() {
   document.getElementById('spotSlideZ').addEventListener('mousemove', function (ev) {
     if (ev.buttons == 1) { g_spotlightPos[2] = this.value / 100; g_spotlightDir[2] = this.value / 10000; }
   });
+
+  document.getElementById('lightColorHue').addEventListener('mousemove', function (ev) {
+    if (ev.buttons == 1) {
+      let hue = parseFloat(this.value);
+      let rgb;
+      if (hue === 0) {
+        // When hue is 0, set to white.
+        g_lightColor = [1.0, 1.0, 1.0];
+        rgb = [255, 255, 255];
+      } else {
+        g_lightColor = hsvToRgb(hue, 1, 1);
+        // Convert each channel from [0,1] to [0,255]
+        rgb = g_lightColor.map(c => Math.floor(c * 255));
+      }
+      // Update the preview box background color
+      document.getElementById('lightColorDisplay').style.backgroundColor = `rgb(${rgb.join(',')})`;
+    }
+  });
+  
+  
 
 
   document.getElementById('animationLegOnButton').onclick = function () {
